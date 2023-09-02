@@ -10,7 +10,8 @@ func main() {
 	const filePathRoot = "."
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(filePathRoot)))
+	mux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir(filePathRoot))))
+	mux.HandleFunc("/healthz", handlerReady)
 	corsMux := middlewareCors(mux)
 
 	server := &http.Server{
@@ -22,15 +23,8 @@ func main() {
 	log.Fatal(server.ListenAndServe())
 }
 
-func middlewareCors(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+func handlerReady(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(http.StatusText(http.StatusOK)))
 }

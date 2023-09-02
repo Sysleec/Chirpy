@@ -27,6 +27,7 @@ func main() {
 	router.Handle("/app/*", fsHandler)
 
 	apiRouter.Get("/healthz", handlerReadiness)
+	apiRouter.Post("/validate_chirp", ChirpsValidate)
 
 	metricRouter.Get("/metrics", apiCfg.handlerMetric)
 

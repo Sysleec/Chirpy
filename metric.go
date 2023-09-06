@@ -7,7 +7,7 @@ import (
 
 func (cfg *apiConfig) middlewareMetric(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cfg.fileseverHits++
+		cfg.fileserverHits++
 		next.ServeHTTP(w, r)
 	})
 }
@@ -24,5 +24,5 @@ func (cfg *apiConfig) handlerMetric(w http.ResponseWriter, r *http.Request) {
 </body>
 
 </html>
-	`, cfg.fileseverHits)))
+	`, cfg.fileserverHits)))
 }

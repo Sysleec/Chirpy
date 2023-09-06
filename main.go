@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Sysleec/Chirpy/internal/database"
 	"log"
 	"net/http"
 
@@ -8,38 +9,46 @@ import (
 )
 
 type apiConfig struct {
-	fileseverHits int
+	fileserverHits int
+	DB             *database.DB
 }
 
 func main() {
+	const filepathRoot = "."
 	const port = "8000"
-	const filePathRoot = "."
+
+	db, err := database.NewDB("database.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	apiCfg := apiConfig{
-		fileseverHits: 0,
+		fileserverHits: 0,
+		DB:             db,
 	}
 
 	router := chi.NewRouter()
-	apiRouter := chi.NewRouter()
-	metricRouter := chi.NewRouter()
-	fsHandler := apiCfg.middlewareMetric(http.StripPrefix("/app", http.FileServer(http.Dir(filePathRoot))))
+	fsHandler := apiCfg.middlewareMetric(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot))))
 	router.Handle("/app", fsHandler)
 	router.Handle("/app/*", fsHandler)
 
+	apiRouter := chi.NewRouter()
 	apiRouter.Get("/healthz", handlerReadiness)
-	apiRouter.Post("/validate_chirp", ChirpsValidate)
-
-	metricRouter.Get("/metrics", apiCfg.handlerMetric)
-
+	apiRouter.Post("/chirps", apiCfg.handlerChirpsCreate)
+	apiRouter.Get("/chirps", apiCfg.handlerChirpsRetrieve)
 	router.Mount("/api", apiRouter)
-	router.Mount("/admin", metricRouter)
+
+	adminRouter := chi.NewRouter()
+	adminRouter.Get("/metrics", apiCfg.handlerMetric)
+	router.Mount("/admin", adminRouter)
+
 	corsMux := middlewareCors(router)
 
-	server := &http.Server{
+	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: corsMux,
 	}
 
-	log.Printf("Serving files from %s on port: %s\n", filePathRoot, port)
-	log.Fatal(server.ListenAndServe())
+	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
+	log.Fatal(srv.ListenAndServe())
 }

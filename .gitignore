@@ -2,3 +2,4 @@ out
 Chirpy
 *.http
 *.json
+*.env

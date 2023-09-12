@@ -36,6 +36,14 @@ func (db *DB) createDB() error {
 	return db.writeDB(dbStructure)
 }
 
+func (db *DB) ResetDB() error {
+	err := os.Remove(db.path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return db.ensureDB()
+}
+
 func (db *DB) ensureDB() error {
 	_, err := os.ReadFile(db.path)
 	if errors.Is(err, os.ErrNotExist) {

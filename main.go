@@ -56,6 +56,8 @@ func main() {
 	apiRouter.Get("/healthz", handlerReadiness)
 	apiRouter.Get("/reset", apiCfg.handlerReset)
 
+	apiRouter.Post("/revoke", apiCfg.handlerRevoke)
+	apiRouter.Post("/refresh", apiCfg.handlerRefresh)
 	apiRouter.Post("/login", apiCfg.handlerLogin)
 
 	apiRouter.Post("/users", apiCfg.handlerUsersCreate)
@@ -78,7 +80,5 @@ func main() {
 	}
 
 	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
-	//dbg := flag.Bool("debug", false, "Enable debug mode")
-	//flag.Parse(dbg)
 	log.Fatal(srv.ListenAndServe())
 }
